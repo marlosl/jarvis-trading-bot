@@ -1,0 +1,25 @@
+filebeat.inputs:
+- type: log
+  paths:
+  - ${BOT_TRADING_LOG}
+  multiline:
+    pattern: '^.*?: \b\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\b'
+    match: after
+    negate: true
+
+processors:
+- add_locale: ~
+
+output.elasticsearch:
+  hosts: ["${ELASTICSEARCH_HOST}"]
+  username: "elastic"
+  password: "${ELASTICSEARCH_PASSWORD}"
+  ssl.verification_mode: none
+  index: "jarvis-trading-bot"
+  pipeline: "jarvis-trading-bot-pipeline"
+
+setup:
+  template.enabled: false
+  ilm.enabled: false
+  kibana.host: "es01:5601"
+  kibana.protocol: "http"

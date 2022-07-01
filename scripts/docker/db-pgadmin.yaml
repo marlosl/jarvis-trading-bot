@@ -1,0 +1,22 @@
+version: "3.3"
+services:
+  pgadmin4:
+    image: "dpage/pgadmin4:latest"
+    ports:
+      - "5050:80"
+    environment:
+      - TZ=America/Sao_Paulo
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    networks:
+      jarvis-network:
+        aliases:
+          - postgres
+
+networks:
+  jarvis-network:
+    external: true
+
+volumes:
+  jarvis-postgres:
+    external: true

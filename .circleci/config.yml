@@ -1,0 +1,83 @@
+version: 2.1
+
+parameters:
+  build_new_image:
+    type: boolean
+    default: false
+  update_bot_api:
+    type: boolean
+    default: false
+  update_bot:
+    type: boolean
+    default: false
+
+jobs:
+  deploy-jarvis-build-image:
+
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3a:f5:c7:87:1a:2b:48:91:be:3b:e5:a7:4d:51:e7:a0" 
+      - when:
+          condition: << pipeline.parameters.build_new_image >>
+          steps:
+            - run:
+                name: "Deploy over SSH"
+                command: |
+                  ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST "cd /opt/jarvis/jarvis-deploy && ansible-playbook build-trading-bot.yml"
+
+  deploy-jarvis-bot-api:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3a:f5:c7:87:1a:2b:48:91:be:3b:e5:a7:4d:51:e7:a0"
+      - when:
+          condition: << pipeline.parameters.update_bot_api >>
+          steps:
+            - run:
+                name: "Update Bot API Deployment"
+                command: |
+                  ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST "sh /opt/jarvis/jarvis-trading-bot/scripts/update-bot-api-deployment.sh"
+
+  deploy-jarvis-bot:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3a:f5:c7:87:1a:2b:48:91:be:3b:e5:a7:4d:51:e7:a0"
+      - when:
+          condition: << pipeline.parameters.update_bot >>
+          steps:
+            - run:
+                name: "Update Bot Deployment"
+                command: |
+                  ssh -o "StrictHostKeyChecking no" $SSH_USER@$SSH_HOST "sh /opt/jarvis/jarvis-trading-bot/scripts/update-bot-deployment.sh"
+
+workflows:
+  version: 2
+  jarvis-trading-bot-workflow:
+    jobs:
+      - deploy-jarvis-build-image:
+          filters:
+            branches:
+              only:
+                - main
+      - deploy-jarvis-bot-api:
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - deploy-jarvis-build-image
+      - deploy-jarvis-bot:
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+            - deploy-jarvis-build-image

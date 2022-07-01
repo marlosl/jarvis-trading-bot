@@ -1,0 +1,17 @@
+FROM ubuntu:latest
+
+RUN apt-get update && apt-get upgrade -y && apt-get install -y ca-certificates
+
+WORKDIR /go
+
+COPY ./filebeat-7.17.0-linux-arm64.tar.gz /go/.
+COPY ./filebeat.yml /go/.
+COPY ./jarvis-trading-bot /go/.
+COPY ./.env /go/.
+COPY ./.parameters /go/.
+
+RUN tar zxvf filebeat-7.17.0-linux-arm64.tar.gz && mv filebeat-7.17.0-linux-arm64 filebeat && rm -rf filebeat-7.17.0-linux-arm64.tar.gz && chmod go-w /go/filebeat.yml
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]

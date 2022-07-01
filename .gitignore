@@ -1,0 +1,5 @@
+*.db
+.env
+/build
+/scripts/docker/build
+/logs

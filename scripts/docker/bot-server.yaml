@@ -1,0 +1,22 @@
+version: "3.3"
+services:
+  bot-trading-server:
+    build: # "context" and "dockerfile" fields have to be under "build"
+      context: ./build
+      dockerfile: Dockerfile.bot
+    working_dir: /go
+    environment:
+      - TZ=America/Sao_Paulo
+      - BOT_TRADING_LOG=${BOT_TRADING_LOG}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+    command: /go/jarvis-trading-bot server
+    networks:
+      jarvis-network:
+        aliases:
+          - bot-trading-server
+
+networks:
+  jarvis-network:
+    external: true
+

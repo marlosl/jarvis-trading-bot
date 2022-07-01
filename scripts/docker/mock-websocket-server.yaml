@@ -1,0 +1,16 @@
+version: "3.3"
+services:
+  mock-websocket-server:
+    build: # "context" and "dockerfile" fields have to be under "build"
+      context: ./build
+      dockerfile: Dockerfile.bot
+    working_dir: /go
+    command: /go/jarvis-trading-bot mock-websocket-server
+    networks:
+      jarvis-network:
+        aliases:
+          - mock-websocket-server
+
+networks:
+  jarvis-network:
+    external: true

@@ -1,0 +1,74 @@
+{
+  "number_of_shards": 1
+}
+
+{
+  "properties": {
+    "@timestamp": {
+      "type": "date"
+    },
+    "filename": {
+      "type": "keyword"
+    },
+    "linenumber": {
+      "type": "long"
+    },
+    "log_message": {
+      "type": "double"
+    },
+    "loglevel": {
+      "type": "keyword"
+    },
+    "message": {
+      "type": "text"
+    },
+    "type_message": {
+      "type": "keyword"
+    }
+  }
+}
+
+{
+  "description": "Ingest pipeline created by text structure finder",
+  "processors": [
+    {
+      "grok": {
+        "field": "message",
+        "patterns": [
+          "%{LOGLEVEL:loglevel}: %{CUSTOM_TIMESTAMP:timestamp} %{GREEDYDATA:filename}:%{INT:linenumber}: %{GREEDYDATA:type_message} %{GREEDYDATA:log_message}"
+        ],
+        "pattern_definitions": {
+          "CUSTOM_TIMESTAMP": "%{YEAR}/%{MONTHNUM2}/%{MONTHDAY} %{HOUR}:%{MINUTE}:%{SECOND}"
+        }
+      }
+    },
+    {
+      "date": {
+        "field": "timestamp",
+        "timezone": "{{ event.timezone }}",
+        "formats": [
+          "yyyy/MM/dd HH:mm:ss"
+        ]
+      }
+    },
+    {
+      "convert": {
+        "field": "linenumber",
+        "type": "long",
+        "ignore_missing": true
+      }
+    },
+    {
+      "convert": {
+        "field": "log_message",
+        "type": "double",
+        "ignore_missing": true
+      }
+    },
+    {
+      "remove": {
+        "field": "timestamp"
+      }
+    }
+  ]
+}
