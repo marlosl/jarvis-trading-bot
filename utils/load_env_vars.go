@@ -26,6 +26,20 @@ func LoadEnvVars() {
 	}
 }
 
+func LoadEnvVarsFromFiles(files []string) {
+	validList := make([]string, 0)
+	for _, f := range files {
+		if _, err := os.Stat(f); err != nil {
+			continue
+		}
+		validList = append(validList, f)
+	}
+
+	if err := godotenv.Load(validList...); err != nil {
+		log.ErrorLogger.Fatal("Error loading .env file")
+	}
+}
+
 func GetDecimalConfig(confName string) decimal.Decimal {
 	s := os.Getenv(confName)
 	v, e := decimal.NewFromString(s)
