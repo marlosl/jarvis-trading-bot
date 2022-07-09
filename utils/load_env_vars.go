@@ -13,17 +13,7 @@ import (
 
 func LoadEnvVars() {
 	files := []string{".parameters", ".env"}
-	validList := make([]string, 0)
-	for _, f := range files {
-		if _, err := os.Stat(f); err != nil {
-			continue
-		}
-		validList = append(validList, f)
-	}
-
-	if err := godotenv.Load(validList...); err != nil {
-		log.ErrorLogger.Fatal("Error loading .env file")
-	}
+	LoadEnvVarsFromFiles(files)
 }
 
 func LoadEnvVarsFromFiles(files []string) {
