@@ -18,26 +18,26 @@ func GetTelegramUrl() string {
 	return url + "/" + botId + ":" + apiId
 }
 
-func SendJson(json string) {
+func SendJson(json string) bool {
 	listText := fmt.Sprintf("<code>%s</code>", json)
-	SendMessage(listText, true)
+	return SendMessage(listText, true)
 }
 
-func SendMessage(message string, isHtml bool) {
+func SendMessage(message string, isHtml bool) bool {
 	params := url.Values{}
 	if isHtml {
 		params.Add("parse_mode", "html")
 	}
-	SendTelegramMessage(message, params)
+	return SendTelegramMessage(message, params)
 }
 
-func SendRepliedMessage(message string, reply string) {
+func SendRepliedMessage(message string, reply string) bool {
 	params := url.Values{}
 	params.Add("reply_markup", reply)
-	SendTelegramMessage(message, params)
+	return SendTelegramMessage(message, params)
 }
 
-func SendTelegramMessage(message string, paramValues url.Values) {
+func SendTelegramMessage(message string, paramValues url.Values) bool {
 	params := url.Values{}
 	if (len(paramValues)) > 0 {
 		params = paramValues
@@ -56,9 +56,10 @@ func SendTelegramMessage(message string, paramValues url.Values) {
 
 	log.ErrorLogger.Println("err", err)
 	log.InfoLogger.Println("response", response)
+	return err != nil
 }
 
-func SendTelegramCallbackQueryResponse(callbackQueryId string) {
+func SendTelegramCallbackQueryResponse(callbackQueryId string) bool {
 	params := url.Values{}
 
 	params.Add("callback_query_id", callbackQueryId)
@@ -71,4 +72,5 @@ func SendTelegramCallbackQueryResponse(callbackQueryId string) {
 
 	log.ErrorLogger.Println("err", err)
 	log.InfoLogger.Println("response", response)
+	return err != nil
 }
