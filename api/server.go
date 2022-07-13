@@ -21,7 +21,7 @@ type ApiServer struct {
 	AppApi *fiber.App
 }
 
-func (a *ApiServer) Init() {
+func (a *ApiServer) Setup() {
 	a.AppApi = fiber.New()
 
 	a.AppApi.Use(
@@ -43,6 +43,10 @@ func (a *ApiServer) Init() {
 	a.InitBotParametersService()
 	a.InitTradingStatusService()
 	a.InitOnlyCalculateAnalyzerService()
+}
+
+func (a *ApiServer) Init() {
+	a.Setup()
 
 	if err := a.AppApi.Listen(":3001"); err != nil {
 		log.ErrorLogger.Fatal("Api:", err)
