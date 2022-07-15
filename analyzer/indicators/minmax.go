@@ -7,15 +7,24 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	MinMaxIndicator = "MinMax"
+)
+
 type MinMax struct {
 	Crypto  structs.BotParams
 	Candles []structs.Candlestick
 }
 
-func (m *MinMax) CalcMinMax() {
+func (m *MinMax) Name() string {
+	return MinMaxIndicator
+}
+
+func (m *MinMax) CalcIndicator(candle *structs.Candlestick) *structs.AnalysisReturn {
 	log.InfoLogger.Printf("Symbol: %s\n", m.Crypto.Symbol)
 	m.doCalcMinMax(m.Crypto.Symbol)
 	log.InfoLogger.Println("")
+	return nil
 }
 
 func (m *MinMax) doCalcMinMax(symbol string) {

@@ -8,6 +8,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const (
+	BBandsIndicator = "BBands"
+)
+
 type BBands struct {
 	BotParams     structs.BotParams
 	TradingStatus *structs.TradingStatus
@@ -16,7 +20,11 @@ type BBands struct {
 	Period        int
 }
 
-func (b *BBands) CalcBBands(candle *structs.Candlestick) *structs.AnalysisReturn {
+func (b *BBands) Name() string {
+	return BBandsIndicator
+}
+
+func (b *BBands) CalcIndicator(candle *structs.Candlestick) *structs.AnalysisReturn {
 	return b.doCalcBBands(candle)
 }
 

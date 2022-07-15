@@ -10,6 +10,7 @@ import (
 	"jarvis-trading-bot/consts"
 	"jarvis-trading-bot/notification"
 	"jarvis-trading-bot/structs"
+	"jarvis-trading-bot/structs/builders"
 	"jarvis-trading-bot/utils"
 	"jarvis-trading-bot/utils/log"
 
@@ -17,13 +18,12 @@ import (
 )
 
 type Analyzer struct {
-	BrokerApi       *broker.BinanceApi
-	Simulation      bool
-	OnlyCalculate   bool
-	ActiveTradings  []structs.TradingStatusKey
-	BotsParams      map[structs.TradingStatusKey]structs.BotParams
-	PsiIndicator    map[structs.TradingStatusKey]*indicators.Psi
-	BBandsIndicator map[structs.TradingStatusKey]*indicators.BBands
+	BrokerApi      *broker.BinanceApi
+	Simulation     bool
+	OnlyCalculate  bool
+	ActiveTradings []structs.TradingStatusKey
+	BotsParams     map[structs.TradingStatusKey]structs.BotParams
+	Indicators     map[structs.TradingStatusKey][]indicators.Indicator
 }
 
 func (a *Analyzer) Init() {
@@ -48,8 +48,7 @@ func (a *Analyzer) initProperties() {
 	a.BrokerApi = new(broker.BinanceApi)
 	a.ActiveTradings = make([]structs.TradingStatusKey, 0)
 	a.BotsParams = make(map[structs.TradingStatusKey]structs.BotParams)
-	a.PsiIndicator = make(map[structs.TradingStatusKey]*indicators.Psi)
-	a.BBandsIndicator = make(map[structs.TradingStatusKey]*indicators.BBands)
+	a.Indicators = make(map[structs.TradingStatusKey][]indicators.Indicator, 0)
 }
 
 func (a *Analyzer) initAnalyzer() {
@@ -81,23 +80,24 @@ func (a *Analyzer) initOnlyCalculateAnalyzer(idBotParam string) {
 }
 
 func (a *Analyzer) GetBotParams(b structs.BotParameters) structs.BotParams {
-	bp := new(structs.BotParams)
-	bp.Symbol = b.Symbol
-	bp.BuyingAsset = b.BuyingAsset
-	bp.SellingAsset = b.SellingAsset
-	bp.BuyingQty = b.BuyingQty
-	bp.PercentageTax = b.PercentageTax
-	bp.StopLossPercentage = b.StopLossPercentage
-	bp.TrailingStopLoss = b.TrailingStopLoss
-	bp.MinimumLimitPercentage = b.MinimumLimitPercentage
-	bp.RsiPeriod = b.RsiPeriod
-	bp.RsiOverbought = b.RsiOverbought
-	bp.RsiOversold = b.RsiOversold
-	bp.MaxNumberNegotiations = b.MaxNumberNegotiations
-	bp.MinPeriodNextNegotiation = b.MinPeriodNextNegotiation
-	bp.StreamSymbol = b.StreamSymbol
-	bp.StreamInterval = b.StreamInterval
-
+	bb := builders.NewBotParamsBuilder()
+	bb.
+		SetSymbol(b.Symbol).
+		SetBuyingAsset(b.BuyingAsset).
+		SetSellingAsset(b.SellingAsset).
+		SetBuyingQty(b.BuyingQty).
+		SetPercentageTax(b.PercentageTax).
+		SetStopLossPercentage(b.StopLossPercentage).
+		SetTrailingStopLoss(b.TrailingStopLoss).
+		SetMinimumLimitPercentage(b.MinimumLimitPercentage).
+		SetRsiPeriod(b.RsiPeriod).
+		SetRsiOverbought(b.RsiOverbought).
+		SetRsiOversold(b.RsiOversold).
+		SetMaxNumberNegotiations(b.MaxNumberNegotiations).
+		SetMinPeriodNextNegotiation(b.MinPeriodNextNegotiation).
+		SetStreamSymbol(b.StreamSymbol).
+		SetStreamInterval(b.StreamInterval)
+	bp := bb.Build()
 	return *bp
 }
 
@@ -112,30 +112,34 @@ func (a *Analyzer) FillAnalyzerParams(botParamId uint, userId uint, b structs.Bo
 		for _, t := range *trStatus {
 			atk.InstanceId = t.InstanceId
 
-			a.PsiIndicator[*atk] = new(indicators.Psi)
-			a.PsiIndicator[*atk].BotParams = b
-			a.PsiIndicator[*atk].TradingStatus = &t
-			a.PsiIndicator[*atk].OnlyCalculate = a.OnlyCalculate
+			psi := new(indicators.Psi)
+			psi.BotParams = b
+			psi.TradingStatus = &t
+			psi.OnlyCalculate = a.OnlyCalculate
+			a.Indicators[*atk] = append(a.Indicators[*atk], psi)
 
-			a.BBandsIndicator[*atk] = new(indicators.BBands)
-			a.BBandsIndicator[*atk].BotParams = b
-			a.BBandsIndicator[*atk].OnlyCalculate = a.OnlyCalculate
+			bband := new(indicators.BBands)
+			bband.BotParams = b
+			bband.OnlyCalculate = a.OnlyCalculate
+			a.Indicators[*atk] = append(a.Indicators[*atk], bband)
 		}
 	} else {
 		atk.InstanceId = initialInstance
-		a.PsiIndicator[*atk] = new(indicators.Psi)
-		a.PsiIndicator[*atk].BotParams = b
-		a.PsiIndicator[*atk].TradingStatus = new(structs.TradingStatus)
-		a.PsiIndicator[*atk].TradingStatus.Simulation = a.Simulation
-		a.PsiIndicator[*atk].TradingStatus.UserId = userId
-		a.PsiIndicator[*atk].TradingStatus.BotParameterId = botParamId
-		a.PsiIndicator[*atk].TradingStatus.Symbol = b.Symbol
-		a.PsiIndicator[*atk].TradingStatus.InstanceId = initialInstance
-		a.PsiIndicator[*atk].OnlyCalculate = a.OnlyCalculate
+		psi := new(indicators.Psi)
+		psi.BotParams = b
+		psi.TradingStatus = new(structs.TradingStatus)
+		psi.TradingStatus.Simulation = a.Simulation
+		psi.TradingStatus.UserId = userId
+		psi.TradingStatus.BotParameterId = botParamId
+		psi.TradingStatus.Symbol = b.Symbol
+		psi.TradingStatus.InstanceId = initialInstance
+		psi.OnlyCalculate = a.OnlyCalculate
+		a.Indicators[*atk] = append(a.Indicators[*atk], psi)
 
-		a.BBandsIndicator[*atk] = new(indicators.BBands)
-		a.BBandsIndicator[*atk].BotParams = b
-		a.BBandsIndicator[*atk].OnlyCalculate = a.OnlyCalculate
+		bband := new(indicators.BBands)
+		bband.BotParams = b
+		bband.OnlyCalculate = a.OnlyCalculate
+		a.Indicators[*atk] = append(a.Indicators[*atk], bband)
 	}
 
 	a.BotsParams[*atk] = b
@@ -143,13 +147,22 @@ func (a *Analyzer) FillAnalyzerParams(botParamId uint, userId uint, b structs.Bo
 	log.InfoLogger.Printf("a.ActiveTradings: %s\n", utils.SPrintJson(a.ActiveTradings))
 }
 
+func (a *Analyzer) getIndicators(atk structs.TradingStatusKey, indicator string) indicators.Indicator {
+	for _, i := range a.Indicators[atk] {
+		if i.Name() == indicator {
+			return i
+		}
+	}
+	return nil
+}
+
 func (a *Analyzer) Process(candle *structs.Candlestick) {
 	log.InfoLogger.Printf("a.ActiveTradings: %s\n", utils.SPrintJson(a.ActiveTradings))
 	for _, k := range a.ActiveTradings {
 		if candle.Symbol == k.Symbol {
-			p := a.PsiIndicator[k]
+			p := a.getIndicators(k, indicators.PSIIndicator).(*indicators.Psi)
 			b := a.BotsParams[k]
-			aReturn := p.CalcRSI(candle)
+			aReturn := p.CalcIndicator(candle)
 
 			log.InfoLogger.Printf("Return Analysis: %s\n", utils.SPrintJson(aReturn))
 
@@ -177,25 +190,31 @@ func (a *Analyzer) Process(candle *structs.Candlestick) {
 }
 
 func (a *Analyzer) ProcessOnlyCalculate(k structs.TradingStatusKey, candle *structs.Candlestick) *structs.AnalysisReturn {
-	p := a.PsiIndicator[k].CalcRSI(candle)
-	b := a.BBandsIndicator[k].CalcBBands(candle)
-
 	aReturn := new(structs.AnalysisReturn)
-	aReturn.Operation = p.Operation
-	aReturn.Price = p.Price
-	aReturn.PSI = p.PSI
 
-	aReturn.BBandUpper = b.BBandUpper
-	aReturn.BBandMiddle = b.BBandMiddle
-	aReturn.BBandLower = b.BBandLower
-
+	for _, indicator := range a.Indicators[k] {
+		switch indicator.Name() {
+		case indicators.BBandsIndicator:
+			b := indicator.(*indicators.BBands)
+			v := b.CalcIndicator(candle)
+			aReturn.BBandUpper = v.BBandUpper
+			aReturn.BBandMiddle = v.BBandMiddle
+			aReturn.BBandLower = v.BBandLower
+		case indicators.PSIIndicator:
+			p := indicator.(*indicators.Psi)
+			v := p.CalcIndicator(candle)
+			aReturn.PSI = v.PSI
+			aReturn.Operation = v.Operation
+			aReturn.Price = v.Price
+		}
+	}
 	return aReturn
 }
 
 func (a *Analyzer) hasNextOperation(k structs.TradingStatusKey) bool {
 	nextKey := k
 	nextKey.InstanceId = k.InstanceId + 1
-	_, ok := a.PsiIndicator[nextKey]
+	_, ok := a.Indicators[nextKey]
 	return ok
 }
 
@@ -311,57 +330,65 @@ func (a *Analyzer) SellOp(k *structs.TradingStatusKey, b *structs.BotParams, ar 
 }
 
 func (a *Analyzer) SaveOperation(k *structs.TradingStatusKey, b *structs.BotParams, ar *structs.AnalysisReturn, or *structs.OrderResponse) {
-	o := new(structs.Operation)
-	o.BotParameterId = k.BotParameterId
-	o.InstanceId = k.InstanceId
-	o.Symbol = b.Symbol
-	o.Operation = ar.Operation
-	o.OrigQty = or.OrigQty
-	o.BaseAsset = b.BuyingAsset
-	o.BasePrice = or.Price
-	o.Opened = time.Now()
-	o.OrderId = or.OrderId
-	o.ExecutedQty = or.ExecutedQty
-	o.CummulativeQuoteQty = or.CummulativeQuoteQty
-	o.Type = or.Type
-	o.Status = or.Status
-	o.TransactTime = utils.ConvertToTime(or.TransactTime)
-	o.Finished = false
-	o.CommissionBase = or.Price.Mul(or.OrigQty).Mul(b.PercentageTax)
+	ob := builders.NewOperationBuilder()
+	ob.
+		SetBotParameterId(k.BotParameterId).
+		SetInstanceId(k.InstanceId).
+		SetSymbol(b.Symbol).
+		SetOperation(ar.Operation).
+		SetOrigQty(or.OrigQty).
+		SetBaseAsset(b.BuyingAsset).
+		SetBasePrice(or.Price).
+		SetOpened(time.Now()).
+		SetOrderId(or.OrderId).
+		SetExecutedQty(or.ExecutedQty).
+		SetCummulativeQuoteQty(or.CummulativeQuoteQty).
+		SetType(or.Type).
+		SetStatus(or.Status).
+		SetTransactTime(utils.ConvertToTime(or.TransactTime)).
+		SetFinished(false).
+		SetCommissionBase(or.Price.Mul(or.OrigQty).Mul(b.PercentageTax))
+
+	o := ob.Build()
 
 	utils.PrintJson(o)
 	notification.SendJson(utils.SPrintJson(o))
 	utils.DB.Debug().Save(o)
 
-	a.PsiIndicator[*k].TradingStatus.LastOperationTime = time.Now()
-	a.PsiIndicator[*k].SaveStatus()
+	p := a.getIndicators(*k, indicators.PSIIndicator).(*indicators.Psi)
+	p.TradingStatus.LastOperationTime = time.Now()
+	p.SaveStatus()
 }
 
 func (a *Analyzer) SaveSimulatedOperation(k *structs.TradingStatusKey, b *structs.BotParams, ar *structs.AnalysisReturn) {
-	o := new(structs.Operation)
-	o.BotParameterId = k.BotParameterId
-	o.InstanceId = k.InstanceId
-	o.Symbol = b.Symbol
-	o.Operation = ar.Operation
-	o.OrigQty = b.BuyingQty
-	o.BaseAsset = b.BuyingAsset
-	o.BasePrice = ar.Price
-	o.Opened = time.Now()
-	o.OrderId = 0
-	o.ExecutedQty = b.BuyingQty
-	o.CummulativeQuoteQty = b.BuyingQty.Mul(ar.Price)
-	o.Type = ""
-	o.Status = "FILLED"
-	o.TransactTime = time.Now()
-	o.Finished = true
-	o.CommissionBase = o.CummulativeQuoteQty.Mul(b.PercentageTax)
+	ob := builders.NewOperationBuilder()
+	ob.
+		SetBotParameterId(k.BotParameterId).
+		SetInstanceId(k.InstanceId).
+		SetSymbol(b.Symbol).
+		SetOperation(ar.Operation).
+		SetOrigQty(b.BuyingQty).
+		SetBaseAsset(b.BuyingAsset).
+		SetBasePrice(ar.Price).
+		SetOpened(time.Now()).
+		SetOrderId(0).
+		SetExecutedQty(b.BuyingQty).
+		SetCummulativeQuoteQty(b.BuyingQty.Mul(ar.Price)).
+		SetType("").
+		SetStatus("FILLED").
+		SetTransactTime(time.Now()).
+		SetFinished(true).
+		SetCommissionBase(b.BuyingQty.Mul(ar.Price).Mul(b.PercentageTax))
+
+	o := ob.Build()
 
 	utils.PrintJson(o)
 	notification.SendJson(utils.SPrintJson(o))
 	utils.DB.Save(o)
 
-	a.PsiIndicator[*k].TradingStatus.LastOperationTime = time.Now()
-	a.PsiIndicator[*k].SaveStatus()
+	p := a.getIndicators(*k, indicators.PSIIndicator).(*indicators.Psi)
+	p.TradingStatus.LastOperationTime = time.Now()
+	p.SaveStatus()
 }
 
 func (a *Analyzer) GetCandlestickAnalysis(k structs.TradingStatusKey, startDate string, endDate string) []structs.CandlestickAnalysis {

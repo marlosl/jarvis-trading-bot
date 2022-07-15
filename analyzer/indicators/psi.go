@@ -16,6 +16,10 @@ const (
 	Oversold   = 2
 )
 
+const (
+	PSIIndicator = "PSI"
+)
+
 var zeroDecimal = decimal.NewFromInt(0)
 
 type Psi struct {
@@ -25,7 +29,11 @@ type Psi struct {
 	OnlyCalculate bool
 }
 
-func (p *Psi) CalcRSI(candle *structs.Candlestick) *structs.AnalysisReturn {
+func (p *Psi) Name() string {
+	return PSIIndicator
+}
+
+func (p *Psi) CalcIndicator(candle *structs.Candlestick) *structs.AnalysisReturn {
 	return p.doCalcRSI(candle)
 }
 

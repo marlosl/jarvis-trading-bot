@@ -35,7 +35,7 @@ func TestIndexRoute(t *testing.T) {
 			expectedCode:  404,
 			expectedBody:  "Cannot GET /i-dont-exist",
 		},
-	}.
+	}
 
 	app := new(ApiServer)
 	app.Setup()
@@ -47,8 +47,7 @@ func TestIndexRoute(t *testing.T) {
 			nil,
 		)
 
-		res, err := app.Test(req, -1)
-
+		res, err := app.AppApi.Test(req, -1)
 		assert.Equalf(t, test.expectedError, err != nil, test.description)
 
 		if test.expectedError {
@@ -56,11 +55,8 @@ func TestIndexRoute(t *testing.T) {
 		}
 
 		assert.Equalf(t, test.expectedCode, res.StatusCode, test.description)
-
 		body, err := ioutil.ReadAll(res.Body)
-
 		assert.Nilf(t, err, test.description)
-
 		assert.Equalf(t, test.expectedBody, string(body), test.description)
-
+	}
 }
