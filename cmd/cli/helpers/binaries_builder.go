@@ -153,7 +153,7 @@ func buildBinaryFile(binary BinaryFile, projectDir string, outputDir string) err
 	buildArg := "build"
 	outputArg := "-o"
 
-	sourceFile := filepath.Join(projectDir, "cmd", binary.HandlerDir, "main.go")
+	sourceFile := filepath.Join(projectDir, "cmd", "lambda", binary.HandlerDir, "main.go")
 
 	cmd := exec.Command(goPrg, buildArg, outputArg, outputFilename, sourceFile)
 	stdout, err := cmd.Output()
