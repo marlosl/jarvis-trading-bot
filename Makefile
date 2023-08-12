@@ -11,14 +11,20 @@ GOINST=$(GOCMD) install
 #Binary Name
 BINARY_NAME=main
 
-# Build
-build:
-	@$(GOBUILD) -o $(BINARY_NAME) ./cmd/http
-	@echo "📦 Build Done"
+SRC_CLI=$(shell find ./cmd/cli -name *.go)
+
+# Build CLI
+build-cli: $(SRC_CLI)
+	@$(GOBUILD) -o ./build/$(BINARY_NAME) ./cmd/cli
+	@echo "📦 Build CLI Done"
+
+aws-deploy: build-cli
+	@./build/main aws deploy
+	@echo "🚀 Deploying App to AWS Done"
 
 # Test
 test:
-	@$(GOTEST) -v ./...
+	@$(GOTEST) -cover -v ./...
 	@echo "🧪 Test Completed"
 
 # Run
@@ -30,9 +36,4 @@ run:
 generate-mocks:
 	@$(GOINST) github.com/golang/mock/mockgen@v1.6.0
 	@./scripts/generate-mocks.sh
-
-# Dev
-dev:build
-    @echo "🚀 Running App"
-    @./$(BINARY_NAME)
 
