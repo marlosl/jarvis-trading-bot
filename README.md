@@ -7,7 +7,8 @@
 </p>
 
 > This project executes buy and sell orders based on signals sent by TradingView.
-> Running on the AWS Cloud platform, this project leverages Serverless Services. It operates in an event-driven manner, promptly assessing and executing tasks as soon as events are received.
+
+> Running on the AWS Cloud platform, this project leverages serverless services. It operates in an event-driven manner, promptly assessing and executing tasks as soon as events are received.
 
 ## Install
 
@@ -27,14 +28,7 @@ make aws:deploy
 make test
 ```
 
-## Author
-
-👤 **Marlos Lumi**
-
-* Github: [@marlosl](https://github.com/marlosl)
-
 ## Show your support
 
 Give a ⭐️ if this project helped you!
 
-***
