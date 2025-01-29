@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"jarvis-trading-bot/consts"
-	"jarvis-trading-bot/services/broker"
+	"jarvis-trading-bot/services/broker/binance"
 	"jarvis-trading-bot/services/types"
 	"jarvis-trading-bot/utils"
 )
@@ -21,10 +21,10 @@ func DoOperation(item *types.TransactionItem) error {
 		return errors.New("item is not for real transactions")
 	}
 
-	var order *broker.OrderResponse
+	var order *binance.OrderResponse
 	var err error
 
-	api := broker.NewBinanceApi()
+	api := binance.NewBinanceApi()
 
 	if item.Status == consts.STATUS_ACTIVE {
 		order, err = api.Buy(*item.Symbol, utils.GetDecimalValue(&item.BuyQty), utils.GetDecimalValue(item.BuyPrice))

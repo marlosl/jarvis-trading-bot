@@ -26,3 +26,8 @@ const DnsRecord = "DNS_RECORD"
 
 const CloudfareApiKey = "CLOUDFLARE_API_KEY"
 const CloudfareApiEmail = "CLOUDFLARE_API_EMAIL"
+
+const OKXApiKey = "OKX_API_KEY"
+const OKXApiSecret = "OKX_API_SECRET"
+const OKXApiPassphrase = "OKX_API_PASSPHRASE"
+const OKXBaseUrl = "OKX_BASE_URL"

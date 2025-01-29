@@ -3,14 +3,14 @@ package pricerequest
 import (
 	"fmt"
 
-	"jarvis-trading-bot/services/broker"
+	"jarvis-trading-bot/services/broker/binance"
 	"jarvis-trading-bot/services/exchangeconfig"
 	"jarvis-trading-bot/services/signal"
 	"jarvis-trading-bot/utils"
 )
 
 func DoPriceRequest(signalItem *signal.SignalItem) error {
-	api := broker.NewBinanceApi()
+	api := binance.NewBinanceApi()
 
 	symbol := signalItem.Ticker
 	exchange := signalItem.Exchange
